@@ -1,24 +1,31 @@
-function [best_match,frameDiffs] = shortestPaths( complist )
+function [fish,frameDiffs] = shortestPathsFish( fish,numFish, startFrame )
 %1) Build graph from list of connected components
 %2) Return shortest paths from first frame to lasts
 
+complist = fish(:,5:6,startFrame:end);
 K = size(complist,1);
-
+fish(:,7,startFrame)=[1:numFish]';
 % g = zeros(size(complist,1)*size(complist,3));
+
 for k = 1:size(complist,3)-1
     frameDiffs(:,:,k) = pdist2(complist(:,:,k),complist(:,:,k+1));%[numframes*numfish numFrames]
 end
-
-for k =1:1:size(complist,3)-1
-    if k==120
-    end
-    [short, I] = min(frameDiffs(:,:,k),[],2);
+frameDiffs=cat(3, zeros(numFish,numFish,startFrame-1), frameDiffs);
+for k =startFrame:size(frameDiffs,3)-1
+    [short, I] = min(frameDiffs(:,:,k));
     best_match_vec=I;
-    best_match_vec(short>15)=-99;
-    best_match(:,k) = best_match_vec;
-    %best_match(short>20) = -99;
+   %best_match_vec(short>50)=-99;
+ 	vec = fish(best_match_vec,7,k);
+    vec(short>10)=-99;
+     %a=vec;
+    goodColors=vec(find(vec>-99));
+    
+    missingColors=setdiff(1:numFish,goodColors);
+    numColors=numFish-length(goodColors);
+    vec(vec==-99)=missingColors(1:numColors);
+    fish(:,7,k+1) = vec;
 end
-
+%fish(:,7,size(complist,3))=fish(:,7,size(complist,3)-1);
 
 
 
